@@ -145,8 +145,8 @@ Graças ao sistema de tipos do TypeScript, bugs relacionados ao controle de aces
 O exemplo abaixo não compila pois a função `businessLogic2` espera a role `'manager'` enquanto a rota fornece somente a role `'supervisor'`.
 
 ```typescript
-declare const businessLogic1: <P extends Token>(auth: ExpectToken<P, ['supervisor']>) => P
-declare const businessLogic2: <P extends Token>(auth: ExpectToken<P, ['manager']>) => P
+declare const businessLogic1: (auth: Token<['supervisor']>) => void
+declare const businessLogic2: (auth: Token<['manager']>) => void
 
 router.GET('/example', (context) => {
   const result1 = businessLogic1(context.token)
