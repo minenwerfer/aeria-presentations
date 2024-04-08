@@ -2,6 +2,7 @@
 layout: cover
 theme: seriph
 transition: slide-left
+download: true
 ---
 
 # Aeria
