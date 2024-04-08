@@ -24,7 +24,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -32,7 +32,7 @@ jobs:
         run: npm install
 
       - name: Build with VitePress
-        run: npm run build presentation-pt.md
+        run: npm run build *.md
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
