@@ -138,6 +138,33 @@ Falhas comuns relacionadas à implementação do controle de acesso, tokens, IDO
 ---
 ---
 
+# Controle de acesso em tempo de compilação
+
+Graças ao sistema de tipos do TypeScript, bugs relacionados ao controle de acesso podem ser detectados pelo programador antes mesmo de executar o servidor.
+
+O exemplo abaixo não compila pois a função `businessLogic2` espera a role `'manager'` porém a rota fornece somente a role `'supervisor'`.
+
+```typescript
+declare const businessLogic1: <P extends Token>(auth: ExpectToken<P, ['supervisor']>) => P
+declare const businessLogic2: <P extends Token>(auth: ExpectToken<P, ['manager']>) => P
+
+router.GET('/example', (context) => {
+  const result1 = businessLogic1(context.token)
+  const result2 = businessLogic2(context.token) // Type '"supervisor"' is not assignable to type '"manager"'!
+
+  return {
+    success: true
+  }
+}, {
+  roles: [
+    'supervisor',
+  ]
+})
+```
+
+---
+---
+
 # Exemplo de rate limiting
 
 O Aeria oferece duas formas para fazer garantias de segurança: uma forma declarativa, e uma forma funcional, com a qual o desenvolvedor possui mais liberdade.
