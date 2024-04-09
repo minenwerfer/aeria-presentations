@@ -138,15 +138,15 @@ Falhas comuns relacionadas à implementação do controle de acesso, tokens, IDO
 ---
 ---
 
-# Controle de acesso em tempo de compilação
+# Controle de acesso estaticamente verificado
 
 Graças ao sistema de tipos do TypeScript, bugs relacionados ao controle de acesso podem ser detectados pelo programador antes mesmo de executar o servidor.
 
 O exemplo abaixo não compila pois a função `businessLogic2` espera a role `'manager'` enquanto a rota fornece somente a role `'supervisor'`.
 
 ```typescript
-declare const businessLogic1: (auth: Token<['supervisor']>) => void
-declare const businessLogic2: (auth: Token<['manager']>) => void
+declare const businessLogic1: (token: Token<'supervisor'>) => void
+declare const businessLogic2: (token: Token<'manager'>) => void
 
 router.GET('/example', (context) => {
   const result1 = businessLogic1(context.token)
