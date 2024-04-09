@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "slidev",
-    "build": "slidev build --base /2024/intro-pt/ --out ../dist/2024/statically-checked-access-control/",
-    "export": "slidev export --output ../2024-statically-checked-access-control.pdf"
+    "build": "slidev build --base /2024/intro-pt/ --out ../../dist/2024/statically-checked-access-control/",
+    "export": "slidev export --output ../../2024-statically-checked-access-control.pdf"
   }
 }
