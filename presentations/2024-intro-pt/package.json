@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "slidev",
-    "build": "slidev build --base /2024/intro-pt/ --out ../../dist/2024/intro-pt/",
+    "build": "slidev build --base /aeria-presentations/2024/intro-pt/ --out ../../dist/2024/intro-pt/",
     "export": "slidev export --output ../../2024-intro-pt.pdf"
   }
 }
