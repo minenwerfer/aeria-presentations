@@ -31,7 +31,7 @@ This way we can narrow the type of the callback parameter `context` down to the 
 type RouteContext<TAcceptedRoles extends string> = {
   token: {
     sub: any
-    roles: readonly (TAcceptedRoles)[]
+    roles: readonly TAcceptedRoles[]
   }
 }
 
