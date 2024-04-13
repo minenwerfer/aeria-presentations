@@ -4,7 +4,7 @@ theme: seriph
 transition: slide-left
 ---
 
-# Aeria
+# Statically checked access control
 
 João G. Santos
 
@@ -15,103 +15,95 @@ github.com/minenwerfer
 
 # Why
 
-This method allows us to control the access to critical functions coming from HTTP endpoints atomically with no runtime overhead.
+It is very common to have a core library separated from the server logic. This way developers can have a `doSomething()` function that will later be used in several endpoints across the application. Some teams may prefer this setting and even have different people taking care of core functions and server logic. This, however, makes room for access-control-related bugs (`someAdminAction()` being called in a context an unprivileged user is expected).
+
+With the capabilities of TypeScript's type system it is possible to add an extra layer of security and atomically control the access to core functions without runtime overhead.
 
 ---
 ---
 
 # Theory
 
-- We must be able to tell which roles are allowed into a route
-
-```typescript {6-8}
-router.POST('/example', (context) => {
-  return {
-    success: true
-  }
-}, {
-  roles: [
-    'manager',
-  ]
-})
-```
-
----
----
-
-- The `context.token` object is narrowed to contain only roles specified in the third parameter
-
-```typescript {2-3}
-router.POST('/example', (context) => {
-  // Argument of type '"visitor"' is not assignable to parameter of type '"manager"'.
-  context.token.roles.includes('visitor')
-
-  return {
-    success: true
-  }
-}, {
-  roles: [
-    'manager',
-  ]
-})
-```
-
----
----
-
-Now, the signature of our functions must specify which individual role or set of roles are allowed to execute them.
+The signature of the function that defines HTTP endpoints must provide a way to specify allowed roles.
+This way we can narrow the type of the callback parameter `context` down to the specified roles.
 
 ```typescript
-declare const businessLogic: (token: Token<'manager'>) => void
-
-declare const token1: Token<['visitor', 'manager']>
-// {
-//   sub: ObjectId,
-//   roles: readonly ("visitor" | "manager")[]
-// }
-
-declare const token2: Token<'visitor'>
-// {
-//   sub: ObjectId,
-//   roles: readonly ("visitor")[]
-// }
-
-businessLogic(token1) // ok
-businessLogic(token2) // Type '"visitor"' is not assignable to type '"manager"'.
-```
-
----
----
-
-# Real-world scenario
-
----
----
-
-First, we create a function that only users with `projectManager` or `supervisor` roles should be able to trigger.
-
-```typescript {*}{lines:true}
-const notifySlack = async (notification: SlackNotification, token: Token<['projectManager', 'supervisor']>) => {
-  // ...
+type RouteContext<TAcceptedRoles extends string[]> = {
+  token: {
+    sub: ObjectId
+    roles: TRoles
+  }
 }
+
+declare const route: <const TRoles extends string[]>(
+  method: Uppercase<string>,
+  path: `/${string}`,
+  cb: (context: RouteContext<NoInfer<TRoles>>) => any,
+  options?: {
+    roles: TRoles
+  }
+) => void
 ```
 
-Next, we use the function in a route that provides only the `employee` role (the role of the user is checked at the runtime and the request fails if it doesn't match).
+---
+---
 
-```typescript {*}{lines:true,startLine:5}
-router.POST('/insert', async (context) => {
-  if( someBusinessLogic() ) {
-    // Type '"employee"' is not assignable to type '"projectManager" | "supervisor"'.
-    await notifySlack("something", context.token)
+Next, our core functions must tell in their signatures which roles they expect with `RouteContext<T>`.
+Attempting to pass a invalid context will result in a verbose TypeScript diagnostic telling exactly which roles were expected and which were received instead.
+
+```typescript
+declare const businessLogic: (context: RouteContext<'manager'>) => void
+
+declare const context1: RouteContext<['visitor', 'manager']>
+// {
+//   token: {
+//     sub: ObjectId
+//     roles: readonly ("visitor" | "manager")[]
+//   }
+// }
+
+declare const context2: RouteContext<'visitor'>
+// {
+//   token: {
+//     sub: ObjectId
+//     roles: readonly ("visitor")[]
+//   }
+// }
+
+businessLogic(context1) // ok
+businessLogic(context2) // Type '"visitor"' is not assignable to type '"manager"'.
+```
+
+---
+---
+
+# Putting the parts together
+
+Now that our `route()` function narrows the type of `context` according to specified roles and our functions tell which roles they are expecting we can detect functions being called in an insecure context during dev/compile time.
+
+```typescript
+declare const businessLogic1: (context: RouteContext<['manager', 'supervisor']>) => void
+declare const businessLogic2: (context: RouteContext<'visitor'>) => void
+
+route('GET', '/test', (context) => {
+  businessLogic1(context) // ok
+  businessLogic2(context) // Type '"visitor"' is not assignable to type '"manager" | "supervisor"'.
+
+  return {
+    success: true
   }
 }, {
   roles: [
-    'employee'
+    'visitor'
   ]
 })
 ```
 
-TypeScript is able to catch the access control violation at the line 8.
+---
+---
+
+Aeria is a production-ready, security-focused backend framework that implements this concept out-of-the-box.
+Give it a try (and a star!) [on Github](https://github.com/aeria-org/aeria).
 
 ---
 layout: end
@@ -119,5 +111,5 @@ layout: end
 
 # The end
 
-Star the Aeria repository [on Github](https://github.com/aeria-org/aeria)
+Hope you liked it!
 
