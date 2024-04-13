@@ -28,17 +28,17 @@ The signature of the function that defines HTTP endpoints must provide a way to 
 This way we can narrow the type of the callback parameter `context` down to the specified roles.
 
 ```typescript
-type RouteContext<TAcceptedRoles extends string[]> = {
+type RouteContext<TAcceptedRoles extends string> = {
   token: {
-    sub: ObjectId
-    roles: TRoles
+    sub: any
+    roles: readonly (TAcceptedRoles)[]
   }
 }
 
 declare const route: <const TRoles extends string[]>(
   method: Uppercase<string>,
   path: `/${string}`,
-  cb: (context: RouteContext<NoInfer<TRoles>>) => any,
+  cb: (context: RouteContext<NoInfer<TRoles>[number]>) => any,
   options?: {
     roles: TRoles
   }
@@ -54,11 +54,11 @@ Attempting to pass a invalid context will result in a verbose TypeScript diagnos
 ```typescript
 declare const businessLogic: (context: RouteContext<'manager'>) => void
 
-declare const context1: RouteContext<['visitor', 'manager']>
+declare const context1: RouteContext<'manager'>
 // {
 //   token: {
 //     sub: ObjectId
-//     roles: readonly ("visitor" | "manager")[]
+//     roles: readonly ("manager")[]
 //   }
 // }
 
@@ -82,12 +82,12 @@ businessLogic(context2) // Type '"visitor"' is not assignable to type '"manager"
 Now that our `route()` function narrows the type of `context` according to specified roles and our functions tell which roles they are expecting we can detect functions being called in an insecure context during dev/compile time.
 
 ```typescript
-declare const businessLogic1: (context: RouteContext<['manager', 'supervisor']>) => void
-declare const businessLogic2: (context: RouteContext<'visitor'>) => void
+declare const businessLogic1: (context: RouteContext<'visitor'>) => void
+declare const businessLogic2: (context: RouteContext<'manager'>) => void
 
 route('GET', '/test', (context) => {
   businessLogic1(context) // ok
-  businessLogic2(context) // Type '"visitor"' is not assignable to type '"manager" | "supervisor"'.
+  businessLogic2(context) // Type '"visitor"' is not assignable to type '"manager"'.
 
   return {
     success: true
