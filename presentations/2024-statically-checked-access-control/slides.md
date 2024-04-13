@@ -102,7 +102,7 @@ route('GET', '/test', (context) => {
 ---
 ---
 
-Aeria is a production-ready, security-focused backend framework that implements this concept out-of-the-box.
+**Aeria** is a production-ready, security-focused backend framework that implements this concept out-of-the-box.
 Give it a try (and a star!) [on Github](https://github.com/aeria-org/aeria).
 
 ---
