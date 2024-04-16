@@ -142,22 +142,22 @@ Falhas comuns relacionadas à implementação do controle de acesso, tokens, IDO
 
 Graças ao sistema de tipos do TypeScript, bugs relacionados ao controle de acesso podem ser detectados pelo programador antes mesmo de executar o servidor.
 
-O exemplo abaixo não compila pois a função `businessLogic2` espera a role `'manager'` enquanto a rota fornece somente a role `'supervisor'`.
+O exemplo abaixo não compila pois a função `businessLogic2` espera a role `'manager'` enquanto a rota fornece somente a role `'visitor'`.
 
 ```typescript
-declare const businessLogic1: (token: Token<'supervisor'>) => void
-declare const businessLogic2: (token: Token<'manager'>) => void
+declare const businessLogic1: (context: RouteContext<'visitor'>) => void
+declare const businessLogic2: (context: RouteContext<'manager'>) => void
 
-router.GET('/example', (context) => {
-  const result1 = businessLogic1(context.token)
-  const result2 = businessLogic2(context.token) // Type '"supervisor"' is not assignable to type '"manager"'!
+route('GET', '/test', (context) => {
+  businessLogic1(context) // ok
+  businessLogic2(context) // Type '"visitor"' is not assignable to type '"manager"'.
 
   return {
     success: true
   }
 }, {
   roles: [
-    'supervisor',
+    'visitor'
   ]
 })
 ```
